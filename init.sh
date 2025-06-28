@@ -184,8 +184,8 @@ run_test "Check Docker Compose" "docker compose version"
 #run_test "Verify user in docker group" "groups $SUDO_USER | grep -q docker && echo 'User is in docker group' || echo 'User is NOT in docker group'"
 wait_for_user
 
-# --- Step 5: Install Desktop Environment and X2Go Server ---
-echo ">>> STEP 5: Installing XFCE Desktop and X2Go Server..."
+# --- Step 5: Install Desktop Environment ---
+echo ">>> STEP 5: Installing XFCE Desktop Environment..."
 
 # Install XFCE, a lightweight and stable desktop environment ideal for remote access.
 echo "Installing XFCE desktop environment. This may take a few minutes..."
@@ -195,14 +195,8 @@ apt-get install -y --no-install-recommends xfce4 xfce4-terminal xfce4-session xf
 # Install additional XFCE components that are useful but not bluetooth-dependent
 apt-get install -y --no-install-recommends xfce4-panel xfce4-appfinder thunar
 
-# Install the X2Go Server, which provides the remote desktop protocol.
-echo "Installing X2Go Server..."
-apt-get install -y x2goserver x2goserver-xsession
-
-announce_success "XFCE Desktop and X2Go Server installation completed"
-run_test "Check X2Go service status" "systemctl status x2goserver --no-pager"
+announce_success "XFCE Desktop Environment installation completed"
 run_test "Verify XFCE packages installed" "dpkg -l | grep -q xfce4 && echo 'XFCE4 is installed' || echo 'XFCE4 is NOT installed'"
-run_test "Verify X2Go packages installed" "dpkg -l | grep -q x2goserver && echo 'X2Go Server is installed' || echo 'X2Go Server is NOT installed'"
 run_test "Check display manager" "systemctl status lightdm --no-pager 2>/dev/null || echo 'LightDM not running (may need reboot)'"
 wait_for_user
 
@@ -220,7 +214,6 @@ echo " ✓ UFW Firewall is active and allows incoming SSH (port 22)."
 echo " ✓ Fail2ban is active and protecting SSH from brute-force attacks."
 echo " ✓ Docker Engine and Compose are installed and verified."
 echo " ✓ XFCE Desktop Environment is installed."
-echo " ✓ X2Go Server is installed for remote desktop access."
 echo
 echo "--------------------------- IMPORTANT NEXT STEPS -----------------------------"
 echo "1. Reboot the server to ensure all changes are applied correctly:"
@@ -228,14 +221,12 @@ echo "   sudo reboot"
 echo
 echo "2. To use Docker without sudo, the user '$SUDO_USER' must log out and log back in."
 echo
-echo "3. To connect via remote desktop:"
-echo "   - On your local computer, download and install the 'X2Go Client'."
-echo "   - Create a new session in the X2Go Client:"
-echo "     - Host: Your server's IP address"
-echo "     - Login: Your username"
-echo "     - SSH port: 22"
-echo "     - Use SSH key authentication for best security."
-echo "     - Session type: Set this to 'XFCE'."
+echo "3. To connect via SSH:"
+echo "   ssh username@your-server-ip"
+echo
+echo "4. For remote desktop access, consider installing VNC or X2Go separately:"
+echo "   - VNC: sudo apt install tigervnc-standalone-server"
+echo "   - X2Go: sudo apt install x2goserver x2goserver-xsession"
 echo "================================================================================"
 
 # Final test summary
@@ -246,7 +237,6 @@ echo "System Updates: $(apt list --upgradable 2>/dev/null | wc -l) packages avai
 echo "UFW Status: $(ufw status | head -1)"
 echo "Fail2ban Status: $(systemctl is-active fail2ban)"
 echo "Docker Status: $(systemctl is-active docker)"
-echo "X2Go Status: $(systemctl is-active x2goserver)"
 echo "=========================================="
 
 wait_for_user
