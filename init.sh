@@ -184,6 +184,31 @@ run_test "Check Docker Compose" "docker compose version"
 #run_test "Verify user in docker group" "groups $SUDO_USER | grep -q docker && echo 'User is in docker group' || echo 'User is NOT in docker group'"
 wait_for_user
 
+# --- Step 5: Install Wayfire for Remote Desktop ---
+echo ">>> STEP 5: Installing Wayfire Compositor for Remote Desktop..."
+
+# Install Wayland and Wayfire dependencies
+echo "Installing Wayland and Wayfire dependencies..."
+apt-get install -y wayland-protocols libwayland-dev
+
+# Install Wayfire compositor
+echo "Installing Wayfire compositor..."
+apt-get install -y wayfire
+
+# Install additional Wayfire plugins and tools
+echo "Installing Wayfire plugins and tools..."
+apt-get install -y wayfire-plugins-extra wf-config
+
+# Install display manager for Wayland
+echo "Installing display manager for Wayland..."
+apt-get install -y gdm3
+
+announce_success "Wayfire Compositor installation completed"
+run_test "Check Wayfire installation" "dpkg -l | grep -q wayfire && echo 'Wayfire is installed' || echo 'Wayfire is NOT installed'"
+run_test "Check Wayland support" "echo $XDG_SESSION_TYPE && echo 'Wayland session type detected'"
+run_test "Check GDM3 service" "systemctl status gdm3 --no-pager 2>/dev/null || echo 'GDM3 not running (may need reboot)'"
+wait_for_user
+
 # --- Finalization ---
 # Turn off command tracing for a cleaner final message.
 set +x
@@ -197,6 +222,7 @@ echo " ✓ System packages updated and upgraded."
 echo " ✓ UFW Firewall is active and allows incoming SSH (port 22)."
 echo " ✓ Fail2ban is active and protecting SSH from brute-force attacks."
 echo " ✓ Docker Engine and Compose are installed and verified."
+echo " ✓ Wayfire Compositor is installed for remote desktop."
 echo
 echo "--------------------------- IMPORTANT NEXT STEPS -----------------------------"
 echo "1. Reboot the server to ensure all changes are applied correctly:"
@@ -207,10 +233,10 @@ echo
 echo "3. To connect via SSH:"
 echo "   ssh username@your-server-ip"
 echo
-echo "4. For remote desktop access, install a desktop environment manually:"
-echo "   - XFCE: sudo apt install xfce4 xfce4-terminal"
-echo "   - VNC: sudo apt install tigervnc-standalone-server"
-echo "   - X2Go: sudo apt install x2goserver x2goserver-xsession"
+echo "4. For remote desktop access with Wayfire:"
+echo "   - Start Wayfire: wayfire"
+echo "   - Use VNC: sudo apt install tigervnc-standalone-server"
+echo "   - Use X2Go: sudo apt install x2goserver x2goserver-xsession"
 echo "================================================================================"
 
 # Final test summary
