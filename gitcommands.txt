@@ -1,2 +1,17 @@
-git clone https://github.com/Zatoichi-42/ubuntuX.git
-git pull
+sudo git clone https://github.com/Zatoichi-42/ubuntuX.git
+
+# Initialize git repository
+sudo git init
+
+# Add the remote origin
+sudo git remote add origin https://github.com/Zatoichi-42/ubuntuX.git
+
+# Fetch the latest changes
+sudo git fetch origin
+
+# Reset to match the remote repository
+sudo git reset --hard origin/main
+
+#pull latest changes
+sudo git pull origin main
+

@@ -1,37 +1,64 @@
 #!/bin/bash
 
-# Ubuntu Server Refresh Script
-# This script refreshes the system and pulls the latest changes from GitHub
+# UbuntuX Repository Refresh Script
+# This script updates the local repository from GitHub
 
-set -x
+set -e
 
-echo "=== Ubuntu Server Refresh Script ==="
-echo "Refreshing system and pulling latest changes..."
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+print_status() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
 
 # Check if we're in a git repository
-if [ ! -d ".git" ]; then
-    echo "Initializing git repository..."
-    git init
-    git remote add origin https://github.com/Zatoichi-42/ubuntuX.git
+if [[ ! -d .git ]]; then
+    print_error "Not in a git repository. Please run this script from the ubuntuX directory."
+    exit 1
 fi
 
-# Fetch the latest changes
-echo "Fetching latest changes from GitHub..."
+# Check if git is available
+if ! command -v git &> /dev/null; then
+    print_error "Git is not installed. Installing git..."
+    sudo apt update
+    sudo apt install -y git
+fi
+
+# Check if dos2unix is available
+if ! command -v dos2unix &> /dev/null; then
+    print_warning "dos2unix not found. Installing..."
+    sudo apt update
+    sudo apt install -y dos2unix
+fi
+
+print_status "Fetching latest changes from GitHub..."
 git fetch origin
 
-# Reset to match the remote repository
-echo "Resetting to match remote repository..."
-git reset --hard origin/main
-
-# Pull latest changes
-echo "Pulling latest changes..."
+print_status "Pulling latest changes..."
 git pull origin main
 
-# Make scripts executable
-echo "Making scripts executable..."
-chmod +x refresh.sh
+print_status "Setting executable permissions..."
 chmod +x init.sh
 
-echo "=== Refresh Complete ==="
-echo "Latest changes pulled from GitHub."
-echo "Run './init.sh' to execute the setup script."
+print_status "Converting line endings..."
+dos2unix init.sh 2>/dev/null || true
+
+print_status "Repository updated successfully!"
+print_status "Run: ./init.sh to start the setup script"
+
+# Show current status
+echo ""
+print_status "Current repository status:"
+git status --short
