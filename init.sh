@@ -106,7 +106,9 @@ ufw default allow outgoing
 ufw allow ssh
 
 # Allow VNC connections for Wayfire remote desktop
-ufw allow 5900/tcp
+ufw allow 5901/tcp
+ufw allow 5902/tcp
+ufw allow 5903/tcp
 
 # Enable the firewall. The 'yes' command is piped to automatically confirm
 # the action, preventing the script from hanging.
@@ -115,7 +117,7 @@ yes | ufw enable
 announce_success "UFW Firewall installation and configuration completed"
 run_test "Check UFW status" "ufw status verbose"
 run_test "Verify SSH port is allowed" "ufw status | grep -q '22.*ALLOW' && echo 'SSH port 22 is allowed' || echo 'SSH port 22 is NOT allowed'"
-run_test "Verify VNC port is allowed" "ufw status | grep -q '5900.*ALLOW' && echo 'VNC port 5900 is allowed' || echo 'VNC port 5900 is NOT allowed'"
+run_test "Verify VNC ports are allowed" "ufw status | grep -q '5901.*ALLOW' && echo 'VNC port 5901 is allowed' || echo 'VNC port 5901 is NOT allowed'; ufw status | grep -q '5902.*ALLOW' && echo 'VNC port 5902 is allowed' || echo 'VNC port 5902 is NOT allowed'; ufw status | grep -q '5903.*ALLOW' && echo 'VNC port 5903 is allowed' || echo 'VNC port 5903 is NOT allowed'"
 
 # --- Step 3: Harden SSH with Fail2ban ---
 echo ">>> STEP 3: Installing and configuring Fail2ban to prevent brute-force attacks..."
@@ -256,7 +258,7 @@ echo "==========================================================================
 echo
 echo "Summary of actions performed:"
 echo " ✓ System packages updated and upgraded."
-echo " ✓ UFW Firewall is active and allows incoming SSH (port 22) and VNC (port 5900)."
+echo " ✓ UFW Firewall is active and allows incoming SSH (port 22) and VNC (ports 5901, 5902, 5903)."
 echo " ✓ Fail2ban is active and protecting SSH from brute-force attacks."
 echo " ✓ Docker Engine and Compose are installed and verified."
 echo " ✓ Wayfire Compositor and VNC server are installed for remote desktop."

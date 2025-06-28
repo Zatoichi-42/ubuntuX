@@ -1,0 +1,99 @@
+# RealVNC Connection Guide for Wayfire Desktop
+
+## 🔧 **VNC Connection Parameters for Windows:**
+
+### **1. VNC Client Software:**
+- **RealVNC Viewer** (recommended): https://www.realvnc.com/en/connect/download/viewer/
+- **TightVNC Viewer**: https://www.tightvnc.com/download.php
+- **UltraVNC**: https://www.uvnc.com/downloads/ultravnc.html
+
+### **2. Connection Details:**
+```
+Host/IP Address: your-server-ip
+Port: 5901 (or 5902, 5903, etc. depending on VNC session)
+Protocol: VNC
+```
+
+### **3. Setup Steps on Your Ubuntu Server:**
+
+**Step 1: Set VNC Password**
+```bash
+vncpasswd
+# Enter your desired password when prompted
+```
+
+**Step 2: Start VNC Server**
+```bash
+vncserver -geometry 1920x1080 -depth 24
+# This will start on display :1 (port 5901)
+```
+
+**Step 3: Check VNC Status**
+```bash
+vncserver -list
+# Shows active VNC sessions and their ports
+```
+
+### **4. Windows VNC Client Connection:**
+
+**In RealVNC Viewer:**
+1. Open RealVNC Viewer
+2. Enter: `your-server-ip:5901`
+3. Click "Connect"
+4. Enter the password you set with `vncpasswd`
+5. You should see the Wayfire desktop
+
+### **5. Port Mapping:**
+- **Display :1** = Port **5901**
+- **Display :2** = Port **5902**
+- **Display :3** = Port **5903**
+
+### **6. Firewall Check:**
+Make sure VNC ports are open:
+```bash
+sudo ufw status
+# Should show 5901/tcp, 5902/tcp, 5903/tcp ALLOW
+```
+
+### **7. Alternative: Use SSH Tunnel (More Secure)**
+```bash
+# On Windows, use PuTTY or SSH client to tunnel VNC
+ssh -L 5901:localhost:5901 username@your-server-ip
+# Then connect to localhost:5901 in VNC client
+```
+
+### **8. Multiple VNC Sessions:**
+```bash
+# Start additional VNC sessions
+vncserver -geometry 1920x1080 -depth 24 :2
+vncserver -geometry 1920x1080 -depth 24 :3
+
+# Kill VNC sessions if needed
+vncserver -kill :1
+vncserver -kill :2
+```
+
+### **9. Troubleshooting:**
+
+**Connection Refused:**
+- Check if VNC server is running: `vncserver -list`
+- Check firewall: `sudo ufw status`
+- Check if port is open: `netstat -tlnp | grep 5901`
+
+**Black Screen:**
+- Make sure Wayfire is installed: `dpkg -l | grep wayfire`
+- Check VNC startup script: `cat ~/.vnc/xstartup`
+
+**Authentication Failed:**
+- Reset VNC password: `vncpasswd`
+- Check password in VNC client
+
+### **10. Security Recommendations:**
+- Use SSH tunneling instead of direct VNC connection
+- Change VNC password regularly
+- Only open necessary VNC ports
+- Consider using a VPN for additional security
+
+---
+
+**Note:** The script automatically configures the VNC startup script to launch Wayfire when you connect! 
