@@ -189,7 +189,11 @@ echo ">>> STEP 5: Installing XFCE Desktop and X2Go Server..."
 
 # Install XFCE, a lightweight and stable desktop environment ideal for remote access.
 echo "Installing XFCE desktop environment. This may take a few minutes..."
-apt-get install -y xfce4 xfce4-goodies
+# Install minimal XFCE without unnecessary packages like bluetooth
+apt-get install -y --no-install-recommends xfce4 xfce4-terminal xfce4-session xfce4-settings
+
+# Install additional XFCE components that are useful but not bluetooth-dependent
+apt-get install -y --no-install-recommends xfce4-panel xfce4-appfinder thunar
 
 # Install the X2Go Server, which provides the remote desktop protocol.
 echo "Installing X2Go Server..."
