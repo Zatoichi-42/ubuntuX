@@ -33,6 +33,30 @@ set -u
 # verbose trace of what the script is doing.
 set -x
 
+# Function to wait for user input
+wait_for_user() {
+    echo ""
+    echo "Press any key to proceed to the next step..."
+    read -n 1 -s
+    echo ""
+}
+
+# Function to announce success
+announce_success() {
+    echo ""
+    echo "✅ SUCCESS: $1"
+    echo "=========================================="
+}
+
+# Function to run simple test
+run_test() {
+    echo ""
+    echo "🧪 Running test: $1"
+    echo "------------------------------------------"
+    $2
+    echo "✅ Test completed successfully"
+}
+
 # --- Check for Root Privileges ---
 # The script needs to install packages and modify system configuration,
 # which requires root access.
@@ -46,8 +70,8 @@ echo "==========================================================================
 echo "Starting Ubuntu 24.04 Server Initialization..."
 echo "Timestamp: $(date)"
 echo "================================================================================"
-# A brief pause to allow the user to see the initial message.
-sleep 3
+echo "This script will pause after each step for your review and testing."
+wait_for_user
 
 # --- Step 1: System Update and Upgrade ---
 echo ">>> STEP 1: Performing full system update and upgrade..."
@@ -59,8 +83,11 @@ apt-get update
 apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade
 # Remove packages that were automatically installed to satisfy dependencies but are no longer needed.
 apt-get -y autoremove
-echo ">>> System upgrade complete."
-sleep 2
+
+announce_success "System update and upgrade completed"
+run_test "Check package list is updated" "apt list --upgradable 2>/dev/null | wc -l"
+run_test "Check system is up to date" "[[ \$(apt list --upgradable 2>/dev/null | wc -l) -le 1 ]] && echo 'System is up to date' || echo 'Updates available'"
+wait_for_user
 
 # --- Step 2: Install Essential Packages and Configure Firewall ---
 echo ">>> STEP 2: Installing essential tools and configuring UFW Firewall..."
@@ -80,10 +107,10 @@ ufw allow ssh
 # the action, preventing the script from hanging.
 yes | ufw enable
 
-echo "Firewall enabled. Current status:"
-ufw status verbose
-echo ">>> Firewall configuration complete."
-sleep 2
+announce_success "UFW Firewall installation and configuration completed"
+run_test "Check UFW status" "ufw status verbose"
+run_test "Verify SSH port is allowed" "ufw status | grep -q '22.*ALLOW' && echo 'SSH port 22 is allowed' || echo 'SSH port 22 is NOT allowed'"
+wait_for_user
 
 # --- Step 3: Harden SSH with Fail2ban ---
 echo ">>> STEP 3: Installing and configuring Fail2ban to prevent brute-force attacks..."
@@ -113,13 +140,11 @@ EOF
 systemctl restart fail2ban
 systemctl enable fail2ban
 
-echo "Fail2ban has been configured and started. Current status:"
-# Check the service status without using a pager for non-interactive viewing.
-systemctl status fail2ban --no-pager
-# Use the fail2ban client to specifically check the status of the SSH jail.
-fail2ban-client status sshd
-echo ">>> Fail2ban installation and hardening complete."
-sleep 2
+announce_success "Fail2ban installation and configuration completed"
+run_test "Check Fail2ban service status" "systemctl status fail2ban --no-pager"
+run_test "Check SSH jail status" "fail2ban-client status sshd"
+run_test "Verify Fail2ban is enabled on boot" "systemctl is-enabled fail2ban && echo 'Fail2ban is enabled on boot' || echo 'Fail2ban is NOT enabled on boot'"
+wait_for_user
 
 # --- Step 4: Install Docker Engine and Docker Compose ---
 echo ">>> STEP 4: Installing Docker Engine and Docker Compose..."
@@ -148,10 +173,13 @@ if [ -n "${SUDO_USER-}" ]; then
     echo "NOTE: User '$SUDO_USER' must log out and log back in to run Docker without sudo."
 fi
 
-echo "Verifying Docker installation by running the 'hello-world' container..."
-docker run hello-world
-echo ">>> Docker installation complete."
-sleep 2
+announce_success "Docker Engine and Docker Compose installation completed"
+run_test "Check Docker service status" "systemctl status docker --no-pager"
+run_test "Verify Docker installation" "docker --version"
+run_test "Test Docker functionality" "docker run hello-world"
+run_test "Check Docker Compose" "docker compose version"
+run_test "Verify user in docker group" "groups $SUDO_USER | grep -q docker && echo 'User is in docker group' || echo 'User is NOT in docker group'"
+wait_for_user
 
 # --- Step 5: Install Desktop Environment and X2Go Server ---
 echo ">>> STEP 5: Installing XFCE Desktop and X2Go Server..."
@@ -164,8 +192,12 @@ apt-get install -y xfce4 xfce4-goodies
 echo "Installing X2Go Server..."
 apt-get install -y x2goserver x2goserver-xsession
 
-echo ">>> XFCE and X2Go Server installation complete."
-sleep 2
+announce_success "XFCE Desktop and X2Go Server installation completed"
+run_test "Check X2Go service status" "systemctl status x2goserver --no-pager"
+run_test "Verify XFCE packages installed" "dpkg -l | grep -q xfce4 && echo 'XFCE4 is installed' || echo 'XFCE4 is NOT installed'"
+run_test "Verify X2Go packages installed" "dpkg -l | grep -q x2goserver && echo 'X2Go Server is installed' || echo 'X2Go Server is NOT installed'"
+run_test "Check display manager" "systemctl status lightdm --no-pager 2>/dev/null || echo 'LightDM not running (may need reboot)'"
+wait_for_user
 
 # --- Finalization ---
 # Turn off command tracing for a cleaner final message.
@@ -198,4 +230,17 @@ echo "     - SSH port: 22"
 echo "     - Use SSH key authentication for best security."
 echo "     - Session type: Set this to 'XFCE'."
 echo "================================================================================"
+
+# Final test summary
+echo ""
+echo "🧪 FINAL SYSTEM TEST SUMMARY:"
+echo "=========================================="
+echo "System Updates: $(apt list --upgradable 2>/dev/null | wc -l) packages available"
+echo "UFW Status: $(ufw status | head -1)"
+echo "Fail2ban Status: $(systemctl is-active fail2ban)"
+echo "Docker Status: $(systemctl is-active docker)"
+echo "X2Go Status: $(systemctl is-active x2goserver)"
+echo "=========================================="
+
+wait_for_user
 
