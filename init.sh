@@ -195,10 +195,6 @@ apt-get install -y wayland-protocols libwayland-dev
 echo "Installing Wayfire compositor..."
 apt-get install -y wayfire
 
-# Install additional Wayfire plugins and tools
-echo "Installing Wayfire plugins and tools..."
-apt-get install -y wayfire-plugins-extra wf-config
-
 # Install display manager for Wayland
 echo "Installing display manager for Wayland..."
 apt-get install -y gdm3
