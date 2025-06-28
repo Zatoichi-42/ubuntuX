@@ -53,7 +53,10 @@ run_test() {
     echo ""
     echo "🧪 Running test: $1"
     echo "------------------------------------------"
-    $2
+    # Temporarily disable debug mode for test execution
+    set +x
+    eval "$2"
+    set -x
     echo "✅ Test completed successfully"
 }
 
