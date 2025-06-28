@@ -170,18 +170,18 @@ apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 # Add the current user (the one who ran sudo) to the docker group.
 # This allows running docker commands without needing sudo every time.
 # The SUDO_USER variable is set by the sudo command.
-if [ -n "${SUDO_USER-}" ]; then
-    echo "Adding user '$SUDO_USER' to the 'docker' group..."
-    usermod -aG docker "$SUDO_USER"
-    echo "NOTE: User '$SUDO_USER' must log out and log back in to run Docker without sudo."
-fi
+#if [ -n "${SUDO_USER-}" ]; then
+#    echo "Adding user '$SUDO_USER' to the 'docker' group..."
+#    usermod -aG docker "$SUDO_USER"
+#    echo "NOTE: User '$SUDO_USER' must log out and log back in to run Docker without sudo."
+#fi
 
 announce_success "Docker Engine and Docker Compose installation completed"
 run_test "Check Docker service status" "systemctl status docker --no-pager"
 run_test "Verify Docker installation" "docker --version"
 run_test "Test Docker functionality" "docker run hello-world"
 run_test "Check Docker Compose" "docker compose version"
-run_test "Verify user in docker group" "groups $SUDO_USER | grep -q docker && echo 'User is in docker group' || echo 'User is NOT in docker group'"
+#run_test "Verify user in docker group" "groups $SUDO_USER | grep -q docker && echo 'User is in docker group' || echo 'User is NOT in docker group'"
 wait_for_user
 
 # --- Step 5: Install Desktop Environment and X2Go Server ---
