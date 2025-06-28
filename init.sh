@@ -184,22 +184,6 @@ run_test "Check Docker Compose" "docker compose version"
 #run_test "Verify user in docker group" "groups $SUDO_USER | grep -q docker && echo 'User is in docker group' || echo 'User is NOT in docker group'"
 wait_for_user
 
-# --- Step 5: Install Desktop Environment ---
-echo ">>> STEP 5: Installing XFCE Desktop Environment..."
-
-# Install XFCE, a lightweight and stable desktop environment ideal for remote access.
-echo "Installing XFCE desktop environment. This may take a few minutes..."
-# Install minimal XFCE without unnecessary packages like bluetooth
-apt-get install -y --no-install-recommends xfce4 xfce4-terminal xfce4-session xfce4-settings
-
-# Install additional XFCE components that are useful but not bluetooth-dependent
-apt-get install -y --no-install-recommends xfce4-panel xfce4-appfinder thunar
-
-announce_success "XFCE Desktop Environment installation completed"
-run_test "Verify XFCE packages installed" "dpkg -l | grep -q xfce4 && echo 'XFCE4 is installed' || echo 'XFCE4 is NOT installed'"
-run_test "Check display manager" "systemctl status lightdm --no-pager 2>/dev/null || echo 'LightDM not running (may need reboot)'"
-wait_for_user
-
 # --- Finalization ---
 # Turn off command tracing for a cleaner final message.
 set +x
@@ -213,7 +197,6 @@ echo " ✓ System packages updated and upgraded."
 echo " ✓ UFW Firewall is active and allows incoming SSH (port 22)."
 echo " ✓ Fail2ban is active and protecting SSH from brute-force attacks."
 echo " ✓ Docker Engine and Compose are installed and verified."
-echo " ✓ XFCE Desktop Environment is installed."
 echo
 echo "--------------------------- IMPORTANT NEXT STEPS -----------------------------"
 echo "1. Reboot the server to ensure all changes are applied correctly:"
@@ -224,7 +207,8 @@ echo
 echo "3. To connect via SSH:"
 echo "   ssh username@your-server-ip"
 echo
-echo "4. For remote desktop access, consider installing VNC or X2Go separately:"
+echo "4. For remote desktop access, install a desktop environment manually:"
+echo "   - XFCE: sudo apt install xfce4 xfce4-terminal"
 echo "   - VNC: sudo apt install tigervnc-standalone-server"
 echo "   - X2Go: sudo apt install x2goserver x2goserver-xsession"
 echo "================================================================================"
