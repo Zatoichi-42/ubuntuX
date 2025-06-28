@@ -73,8 +73,8 @@ echo "==========================================================================
 echo "Starting Ubuntu 24.04 Server Initialization..."
 echo "Timestamp: $(date)"
 echo "================================================================================"
-echo "This script will pause after each step for your review and testing."
-wait_for_user
+echo "This script will run installations automatically and pause after each step for testing."
+echo ""
 
 # --- Step 1: System Update and Upgrade ---
 echo ">>> STEP 1: Performing full system update and upgrade..."
@@ -199,34 +199,52 @@ apt-get install -y wayland-protocols libwayland-dev
 echo "Installing Wayfire compositor..."
 apt-get install -y wayfire
 
-# Install Wayfire VNC plugin
-echo "Installing Wayfire VNC plugin..."
-apt-get install -y wayfire-plugin-vnc
-
 # Install display manager for Wayland
 echo "Installing display manager for Wayland..."
 apt-get install -y gdm3
 
-# Configure Wayfire VNC plugin
-echo "Configuring Wayfire VNC plugin..."
+# Install TigerVNC for remote desktop access
+echo "Installing TigerVNC server..."
+apt-get install -y tigervnc-standalone-server tigervnc-common
+
+# Configure Wayfire for VNC
+echo "Configuring Wayfire for VNC access..."
 mkdir -p ~/.config
 cat > ~/.config/wayfire.ini << 'EOF'
 [core]
-plugins = vnc
+plugins = 
 
-[vnc]
-listen = 0.0.0.0
-port = 5900
-password = wayfire_vnc_password_2024
+[input]
+cursor_speed = 1.0
+mouse_cursor_speed = 1.0
+touchpad_cursor_speed = 1.0
+
+[workarounds]
+fade_delta = 75
 EOF
+
+# Create VNC startup script for Wayfire
+mkdir -p ~/.vnc
+cat > ~/.vnc/xstartup << 'EOF'
+#!/bin/bash
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+export XKL_XMODMAP_DISABLE=1
+export XDG_CURRENT_DESKTOP="wayfire"
+export XDG_SESSION_DESKTOP="wayfire"
+exec wayfire
+EOF
+
+chmod +x ~/.vnc/xstartup
 
 # Set proper permissions for the config file
 chmod 600 ~/.config/wayfire.ini
 
-announce_success "Wayfire Compositor and VNC plugin installation completed"
+announce_success "Wayfire Compositor and VNC server installation completed"
 run_test "Check Wayfire installation" "dpkg -l | grep -q wayfire && echo 'Wayfire is installed' || echo 'Wayfire is NOT installed'"
-run_test "Check VNC plugin installation" "dpkg -l | grep -q wayfire-plugin-vnc && echo 'VNC plugin is installed' || echo 'VNC plugin is NOT installed'"
+run_test "Check VNC server installation" "dpkg -l | grep -q tigervnc && echo 'VNC server is installed' || echo 'VNC server is NOT installed'"
 run_test "Check Wayfire config file" "test -f ~/.config/wayfire.ini && echo 'Wayfire config exists' || echo 'Wayfire config does NOT exist'"
+run_test "Check VNC startup script" "test -f ~/.vnc/xstartup && echo 'VNC startup script exists' || echo 'VNC startup script does NOT exist'"
 run_test "Check Wayland support" "echo $XDG_SESSION_TYPE && echo 'Wayland session type detected'"
 run_test "Check GDM3 service" "systemctl status gdm3 --no-pager 2>/dev/null || echo 'GDM3 not running (may need reboot)'"
 wait_for_user
@@ -244,7 +262,7 @@ echo " ✓ System packages updated and upgraded."
 echo " ✓ UFW Firewall is active and allows incoming SSH (port 22) and VNC (port 5900)."
 echo " ✓ Fail2ban is active and protecting SSH from brute-force attacks."
 echo " ✓ Docker Engine and Compose are installed and verified."
-echo " ✓ Wayfire Compositor and VNC plugin are installed for remote desktop."
+echo " ✓ Wayfire Compositor and VNC server are installed for remote desktop."
 echo
 echo "--------------------------- IMPORTANT NEXT STEPS -----------------------------"
 echo "1. Reboot the server to ensure all changes are applied correctly:"
@@ -256,10 +274,10 @@ echo "3. To connect via SSH:"
 echo "   ssh username@your-server-ip"
 echo
 echo "4. For remote desktop access with Wayfire VNC:"
-echo "   - Start Wayfire: wayfire"
-echo "   - Connect via VNC: your-server-ip:5900"
-echo "   - VNC Password: wayfire_vnc_password_2024"
-echo "   - Change the password in ~/.config/wayfire.ini for security"
+echo "   - Set VNC password: vncpasswd"
+echo "   - Start VNC server: vncserver -geometry 1920x1080 -depth 24"
+echo "   - Connect via VNC: your-server-ip:5901"
+echo "   - VNC will start Wayfire desktop environment"
 echo
 echo "5. For additional remote desktop options:"
 echo "   - X2Go: sudo apt install x2goserver x2goserver-xsession"
