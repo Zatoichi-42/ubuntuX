@@ -90,7 +90,6 @@ apt-get -y autoremove
 announce_success "System update and upgrade completed"
 run_test "Check package list is updated" "apt list --upgradable 2>/dev/null | wc -l"
 run_test "Check system is up to date" "[[ \$(apt list --upgradable 2>/dev/null | wc -l) -le 1 ]] && echo 'System is up to date' || echo 'Updates available'"
-wait_for_user
 
 # --- Step 2: Install Essential Packages and Configure Firewall ---
 echo ">>> STEP 2: Installing essential tools and configuring UFW Firewall..."
@@ -117,7 +116,6 @@ announce_success "UFW Firewall installation and configuration completed"
 run_test "Check UFW status" "ufw status verbose"
 run_test "Verify SSH port is allowed" "ufw status | grep -q '22.*ALLOW' && echo 'SSH port 22 is allowed' || echo 'SSH port 22 is NOT allowed'"
 run_test "Verify VNC port is allowed" "ufw status | grep -q '5900.*ALLOW' && echo 'VNC port 5900 is allowed' || echo 'VNC port 5900 is NOT allowed'"
-wait_for_user
 
 # --- Step 3: Harden SSH with Fail2ban ---
 echo ">>> STEP 3: Installing and configuring Fail2ban to prevent brute-force attacks..."
@@ -151,7 +149,6 @@ announce_success "Fail2ban installation and configuration completed"
 run_test "Check Fail2ban service status" "systemctl status fail2ban --no-pager"
 run_test "Check SSH jail status" "fail2ban-client status sshd"
 run_test "Verify Fail2ban is enabled on boot" "systemctl is-enabled fail2ban && echo 'Fail2ban is enabled on boot' || echo 'Fail2ban is NOT enabled on boot'"
-wait_for_user
 
 # --- Step 4: Install Docker Engine and Docker Compose ---
 echo ">>> STEP 4: Installing Docker Engine and Docker Compose..."
@@ -268,7 +265,7 @@ echo "--------------------------- IMPORTANT NEXT STEPS -------------------------
 echo "1. Reboot the server to ensure all changes are applied correctly:"
 echo "   sudo reboot"
 echo
-echo "2. To use Docker without sudo, the user '$SUDO_USER' must log out and log back in."
+echo "2. REMOVED
 echo
 echo "3. To connect via SSH:"
 echo "   ssh username@your-server-ip"
