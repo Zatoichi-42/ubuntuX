@@ -106,6 +106,9 @@ ufw default allow outgoing
 # Without this rule, the firewall would block your SSH access upon activation.
 ufw allow ssh
 
+# Allow VNC connections for Wayfire remote desktop
+ufw allow 5900/tcp
+
 # Enable the firewall. The 'yes' command is piped to automatically confirm
 # the action, preventing the script from hanging.
 yes | ufw enable
@@ -113,6 +116,7 @@ yes | ufw enable
 announce_success "UFW Firewall installation and configuration completed"
 run_test "Check UFW status" "ufw status verbose"
 run_test "Verify SSH port is allowed" "ufw status | grep -q '22.*ALLOW' && echo 'SSH port 22 is allowed' || echo 'SSH port 22 is NOT allowed'"
+run_test "Verify VNC port is allowed" "ufw status | grep -q '5900.*ALLOW' && echo 'VNC port 5900 is allowed' || echo 'VNC port 5900 is NOT allowed'"
 wait_for_user
 
 # --- Step 3: Harden SSH with Fail2ban ---
@@ -195,12 +199,34 @@ apt-get install -y wayland-protocols libwayland-dev
 echo "Installing Wayfire compositor..."
 apt-get install -y wayfire
 
+# Install Wayfire VNC plugin
+echo "Installing Wayfire VNC plugin..."
+apt-get install -y wayfire-plugin-vnc
+
 # Install display manager for Wayland
 echo "Installing display manager for Wayland..."
 apt-get install -y gdm3
 
-announce_success "Wayfire Compositor installation completed"
+# Configure Wayfire VNC plugin
+echo "Configuring Wayfire VNC plugin..."
+mkdir -p ~/.config
+cat > ~/.config/wayfire.ini << 'EOF'
+[core]
+plugins = vnc
+
+[vnc]
+listen = 0.0.0.0
+port = 5900
+password = wayfire_vnc_password_2024
+EOF
+
+# Set proper permissions for the config file
+chmod 600 ~/.config/wayfire.ini
+
+announce_success "Wayfire Compositor and VNC plugin installation completed"
 run_test "Check Wayfire installation" "dpkg -l | grep -q wayfire && echo 'Wayfire is installed' || echo 'Wayfire is NOT installed'"
+run_test "Check VNC plugin installation" "dpkg -l | grep -q wayfire-plugin-vnc && echo 'VNC plugin is installed' || echo 'VNC plugin is NOT installed'"
+run_test "Check Wayfire config file" "test -f ~/.config/wayfire.ini && echo 'Wayfire config exists' || echo 'Wayfire config does NOT exist'"
 run_test "Check Wayland support" "echo $XDG_SESSION_TYPE && echo 'Wayland session type detected'"
 run_test "Check GDM3 service" "systemctl status gdm3 --no-pager 2>/dev/null || echo 'GDM3 not running (may need reboot)'"
 wait_for_user
@@ -215,10 +241,10 @@ echo "==========================================================================
 echo
 echo "Summary of actions performed:"
 echo " ✓ System packages updated and upgraded."
-echo " ✓ UFW Firewall is active and allows incoming SSH (port 22)."
+echo " ✓ UFW Firewall is active and allows incoming SSH (port 22) and VNC (port 5900)."
 echo " ✓ Fail2ban is active and protecting SSH from brute-force attacks."
 echo " ✓ Docker Engine and Compose are installed and verified."
-echo " ✓ Wayfire Compositor is installed for remote desktop."
+echo " ✓ Wayfire Compositor and VNC plugin are installed for remote desktop."
 echo
 echo "--------------------------- IMPORTANT NEXT STEPS -----------------------------"
 echo "1. Reboot the server to ensure all changes are applied correctly:"
@@ -229,10 +255,15 @@ echo
 echo "3. To connect via SSH:"
 echo "   ssh username@your-server-ip"
 echo
-echo "4. For remote desktop access with Wayfire:"
+echo "4. For remote desktop access with Wayfire VNC:"
 echo "   - Start Wayfire: wayfire"
-echo "   - Use VNC: sudo apt install tigervnc-standalone-server"
-echo "   - Use X2Go: sudo apt install x2goserver x2goserver-xsession"
+echo "   - Connect via VNC: your-server-ip:5900"
+echo "   - VNC Password: wayfire_vnc_password_2024"
+echo "   - Change the password in ~/.config/wayfire.ini for security"
+echo
+echo "5. For additional remote desktop options:"
+echo "   - X2Go: sudo apt install x2goserver x2goserver-xsession"
+echo "   - Traditional VNC: sudo apt install tigervnc-standalone-server"
 echo "================================================================================"
 
 # Final test summary
